@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "npx ts-node src/index.ts"
+  },
   "dependencies": {},
   "devDependencies": {
     "ts-node": "^10.4.0",
