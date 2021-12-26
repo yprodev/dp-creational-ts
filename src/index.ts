@@ -20,6 +20,10 @@ function createDatabase<T extends BaseRecord>() {
   class InMemoryDatabase implements Database<T> {
     private db: Record<string, T> = {}
 
+    static instance: InMemoryDatabase = new InMemoryDatabase()
+
+    private constructor() {}
+
     set(newValue: T): void {
       this.db[newValue.id] = newValue
     }
@@ -29,17 +33,19 @@ function createDatabase<T extends BaseRecord>() {
     }
   }
 
-  // Singleton
-  const db = new InMemoryDatabase()
-  return db
+  // Singleton pattern
+  // const db = new InMemoryDatabase()
+  // return db
+
+  return InMemoryDatabase
 }
 
 const pokemonDB = createDatabase<Pokemon>()
 
-pokemonDB.set({
+pokemonDB.instance.set({
   id: 'Bulbasaur',
   attack: 50,
   defense: 10,
 })
 
-console.log(pokemonDB.get('Bulbasaur'))
+console.log(pokemonDB.instance.get('Bulbasaur'))
