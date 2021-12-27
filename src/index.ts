@@ -1,3 +1,5 @@
+import { RecordHandler, loader } from './loader'
+
 // Observer pattern
 type Listener<EventType> = (ev: EventType) => void
 
@@ -89,6 +91,30 @@ function createDatabase<T extends BaseRecord>() {
     visit(visitor: (item: T) => void): void {
       Object.values(this.db).forEach(visitor)
     }
+
+    // Strategy pattern
+    selectBest(scoreStrategy: (item: T) => number): T | undefined {
+      const found: {
+        max: number
+        item: T | undefined
+      } = {
+        max: 0,
+        item: undefined,
+      }
+
+      Object.values(this.db).reduce((f, item) => {
+        const score = scoreStrategy(item)
+
+        if (score > f.max) {
+          f.max = score
+          f.item = item
+        }
+
+        return f
+      }, found)
+
+      return found.item
+    }
   }
 
   // Singleton pattern
@@ -100,6 +126,14 @@ function createDatabase<T extends BaseRecord>() {
 
 const pokemonDB = createDatabase<Pokemon>()
 
+class PokemonDBAdapter implements RecordHandler<Pokemon> {
+  addRecord(record: Pokemon): void {
+    pokemonDB.instance.set(record)
+  }
+}
+
+loader('./data.json', new PokemonDBAdapter())
+
 const unsubscribe = pokemonDB.instance.onAfterAdd(({ value }) => {
   console.log(value)
 })
@@ -107,7 +141,7 @@ const unsubscribe = pokemonDB.instance.onAfterAdd(({ value }) => {
 pokemonDB.instance.set({
   id: 'Bulbasaur',
   attack: 50,
-  defense: 10,
+  defense: 50,
 })
 
 unsubscribe()
@@ -121,3 +155,8 @@ pokemonDB.instance.set({
 pokemonDB.instance.visit((item) => {
   console.log(`See with Visitor: ${item.id}`)
 })
+
+// const bestDefensive = pokemonDB.instance.selectBest(({ defense }) => defense)
+// const bestAttack = pokemonDB.instance.selectBest(({ attack }) => attack)
+
+// console.log(bestAttack, bestDefensive)
